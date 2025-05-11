@@ -1,4 +1,4 @@
-# Guía Zabbix 7 LTS en Ubuntu 24.04 con NGINX y PostgreSQL
+# Guía Zabbix 7.2 LTS en Ubuntu 24.04 con NGINX y PostgreSQL
 
 Zabbix es una solución empresarial de código abierto que monitorea diversos parámetros de red, servidores y la salud de los servicios. Utiliza un mecanismo flexible de notificación que permite configurar alertas por correo electrónico y otros medios como Telegram, facilitando una respuesta rápida a problemas. Además, ofrece recursos avanzados para informes y visualización de datos almacenados, siendo ideal para la planificación de capacidad.
 
