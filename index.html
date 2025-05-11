@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guía Zabbix 7 LTS + Nginx + PostgreSQL</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f8f8;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+      color: #333;
+    }
+    h1, h2 {
+      color: #0e76a8;
+    }
+    pre {
+      background: #eee;
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    code {
+      font-family: Consolas, monospace;
+    }
+  </style>
+</head>
+<body>
+  <h1>Guía Zabbix 7 LTS en Ubuntu 24.04 con NGINX y PostgreSQL</h1>
+
+  <p><strong>Zabbix</strong> es una solución empresarial de código abierto que monitorea diversos parámetros de red, servidores y la salud de los servicios...</p>
+
+  <h2>Instalación de NGINX</h2>
+  <pre><code>apt update
+apt -y install nginx
+sed -i 's/# server_tokens/server_tokens/' /etc/nginx/nginx.conf
+systemctl restart nginx</code></pre>
+
+  <h2>Instalación de PHP 8</h2>
+  <pre><code>apt -y install --no-install-recommends php php-{fpm,cli,mysql,pear,gd,gmp,bcmath,mbstring,curl,xml,zip,json,pgsql}
+nano /etc/php/8.3/fpm/php.ini</code></pre>
+  <p>Editar:</p>
+  <pre><code>max_execution_time = 600
+upload_max_filesize = 100M</code></pre>
+  <pre><code>systemctl restart php8.3-fpm</code></pre>
+
+  <h2>Instalación de PostgreSQL</h2>
+  <pre><code>apt -y install postgresql postgresql-contrib
+su - postgres
+psql</code></pre>
+  <pre><code>\password postgres
+CREATE EXTENSION adminpack;
+\q
+exit</code></pre>
+
+  <h3>Editar archivos de configuración:</h3>
+  <pre><code>sed -i '/postgres.*peer/s/peer/md5/' /etc/postgresql/16/main/pg_hba.conf
+sed -i '0,/local\s*all\s*all\s*peer/s/peer/md5/' /etc/postgresql/16/main/pg_hba.conf
+vim /etc/postgresql/16/main/postgresql.conf</code></pre>
+  <p>Agregar:</p>
+  <pre><code>max_connections = 1000
+shared_buffers = 2GB
+work_mem = 32MB
+maintenance_work_mem = 512MB
+max_wal_size = 2GB
+min_wal_size = 512MB
+effective_cache_size = 4GB</code></pre>
+  <pre><code>systemctl restart postgresql</code></pre>
+
+  <h2>Instalación de Zabbix 7 LTS</h2>
+  <pre><code>cd /tmp/
+wget https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu24.04_all.deb
+dpkg -i zabbix-release_latest_7.0+ubuntu24.04_all.deb
+apt update
+
+apt -y install zabbix-server-pgsql zabbix-frontend-php   zabbix-nginx-conf zabbix-sql-scripts zabbix-agent traceroute</code></pre>
+
+  <h3>Crear base y usuario:</h3>
+  <pre><code>su - postgres
+createuser --pwprompt zabbix
+createdb -O zabbix zabbix
+exit</code></pre>
+
+  <h3>Importar datos:</h3>
+  <pre><code>zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | psql -U zabbix -d zabbix</code></pre>
+
+  <h3>Configurar Zabbix:</h3>
+  <pre><code>nano /etc/zabbix/zabbix_server.conf</code></pre>
+  <p>Agregar:</p>
+  <pre><code>DBPassword=cursozabbix123</code></pre>
+
+  <h3>Configurar PHP-FPM:</h3>
+  <pre><code>nano /etc/zabbix/php-fpm.conf</code></pre>
+  <p>Agregar:</p>
+  <pre><code>php_value[date.timezone] = America/Argentina/Buenos_Aires
+php_value[upload_max_filesize] = 100M</code></pre>
+
+  <h3>Editar nginx:</h3>
+  <pre><code>nano /etc/nginx/conf.d/zabbix.conf</code></pre>
+  <p>Contenido sugerido:</p>
+  <pre><code>server {
+    listen 80;
+    server_name zabbix.tudominio.com;
+
+    root /usr/share/zabbix;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}</code></pre>
+
+  <h3>Iniciar servicios:</h3>
+  <pre><code>systemctl enable zabbix-server
+systemctl restart zabbix-server zabbix-agent nginx</code></pre>
+
+  <p>Accede a <code>http://tu_ip</code> o <code>http://zabbix.tudominio.com</code> y sigue la configuración web.</p>
+</body>
+</html>
