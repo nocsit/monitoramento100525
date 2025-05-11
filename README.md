@@ -5,7 +5,10 @@ Zabbix es una solución empresarial de código abierto que monitorea diversos pa
 ---
 
 ## 🛠️ Requisitos para Ubuntu Server 24.04
-
+Para una maquina de pruebas (puede ser una maquina virtual en Virtual Box, Proxmox, VMware, Hyper-v, Xenserver, XCP-NG, etc)
+- Recomendado 4Gb de memoria RAM
+- 2 Nucleos
+- 50 Gb disco 
 ---
 
 ## 🚀 Instalación de NGINX
