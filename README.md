@@ -222,6 +222,27 @@ Accede a:
 ```
 http://tu_ip
 http://zabbix.tudominio.com
+usuario Admin
+clave zabbix
 ```
 
+Y sigue la configuración web.
+
+## Instalar Grafana seguimos la documentacion oficial 
+
+https://grafana.com/grafana/download
+```bash
+sudo apt-get install -y adduser libfontconfig1 musl
+wget https://dl.grafana.com/enterprise/release/grafana-enterprise_12.0.0_amd64.deb
+sudo dpkg -i grafana-enterprise_12.0.0_amd64.deb
+```
+
+Acceder a Grafana es con la ip del servidor:
+
+```
+http://tu_ip:3000
+http://zabbix.tudominio.com:3000
+```
+Usuario admin
+Clave admin
 Y sigue la configuración web.
